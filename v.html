@@ -234,7 +234,7 @@ let skK=1,freezeT=0,flashA=0,wave=null;
 class Star{
   constructor(y){this.reset(y)}
   reset(y){
-    this.sup=Math.random()<.01;{const r=Math.random();this.kind=this.sup?'':r<.01?'ice':r<.02?'red':''}
+    this.sup=Math.random()<.01;{const r=Math.random();this.kind=this.sup?'':r<.00025?'ice':r<.0005?'red':''}
     this.x=R(30,Math.max(60,W-30));this.y=y===undefined?R(-90,0):y;
     const easy=diff==='Легкий',pw=easy?.2:diff==='Средний'?.5:1;
     this.size=(this.sup?R(18,26):this.kind?R(15,21):R(7,16))*(easy?1.25:1);
@@ -550,7 +550,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.5',MD=document.getElementById('menu');
+const VER='v1.4.6',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
