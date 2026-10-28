@@ -108,6 +108,8 @@ button:active{background:#5a3a8a}
 .pgrid{display:flex;flex-direction:column;gap:6px;text-align:left}
 .pst{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(58,26,90,.32);font-size:13px}
 .pst b{color:#ffd700;white-space:nowrap}
+.it[data-a]{cursor:pointer;transition:background .15s}
+.it[data-a]:hover{background:rgba(120,70,190,.45)}
 </style>
 </head>
 <body>
@@ -126,7 +128,7 @@ const R=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length
 let W=0,H=0,diff='Средний',score=0,paused=false,bullet=false,name='Игрок',spawnT=0,t=0;
 let comet=null,stars=[],sparks=[],expl=[],lasers=[],sky=[],dust=[],hs={};
 let warp=[],wdt=1,barHid=false;
-let pendSc=0,pendSec=0,pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};
+let curP='',plD=null,plN='',topKey='',pendSc=0,pendSec=0,pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};
 let DPR=1,vig=null,tot=0,pendS=0,playT=0,bestT=0,tgtN=60,tgtT=0,cT=0,top3={},mine={},dk={e:0,f:0,eOn:0,fOn:0,eN:12,fN:40};
 try{hs=JSON.parse(localStorage.getItem('hs')||'{}');name=localStorage.getItem('nm')||name;pendS=+localStorage.getItem('ps')||0;{const pp=JSON.parse(localStorage.getItem('pp')||'{}');pendSc=+pp.sc||0;pendSec=+pp.sec||0}}catch(e){}
 function saveHS(){try{localStorage.setItem('hs',JSON.stringify(hs))}catch(e){}}
@@ -478,7 +480,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.1',MD=document.getElementById('menu');
+const VER='v1.4.2',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -676,11 +678,23 @@ async function buyAuto(){
 }
 function buyMult(k){st['m'+k]=true;saveSt();if(sb&&authState==='ok')sb.rpc('buy_mult',{k}).then(()=>{},()=>{})}
 function fmtDur(v){v=Math.floor(v||0);const h=v/3600|0,m=v%3600/60|0,x=v%60;return h?`${h} ч ${m} мин`:m?`${m} мин ${x} с`:`${x} с`}
-function profHTML(B){
-  const ok=pf.ok,f=v=>ok?fmtN(Math.floor(v)):'—',row=(l,v)=>`<div class="pst"><span>${l}</span><b>${v}</b></div>`;
+const fmtD=iso=>{const d=new Date(iso),p2=v=>String(v).padStart(2,'0');return p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+p2(d.getFullYear()%100)};
+function profCard(B,d,bk){
+  const ok=d.ok,f=v=>ok?fmtN(Math.floor(v)):'—',row=(l,v)=>`<div class="pst"><span>${l}</span><b>${v}</b></div>`;
   return '<h2>Профиль</h2><div class="pav"><svg viewBox="0 0 24 24" width="46" height="46"><polygon points="12,2 14.9,8.6 22,9.3 16.6,14 18.2,21 12,17.3 5.8,21 7.4,14 2,9.3 9.1,8.6" fill="#ffd700" stroke="#fff3b0" stroke-width=".6" stroke-linejoin="round"/></svg></div>'
-   +`<div class="pn">${esc(name)}</div><div class="pid">ID ${pf.reg?'1000'+pf.reg:'—'}</div><div class="pdt">Дата регистрации: ${pf.date||'—'}</div>`
-   +'<div class="pgrid">'+row('Очки за всё время',f(pf.sc))+row('Лучшее время',fmtT(bestT))+row('Звёзд собрано',f(pf.ea))+row('Время в игре',ok?fmtDur(pf.sec):'—')+'</div>'+B('back','← Назад','lnk');
+   +`<div class="pn">${esc(d.nick)}</div><div class="pid">ID ${d.reg?'1000'+d.reg:'—'}</div><div class="pdt">Дата регистрации: ${d.date||'—'}</div>`
+   +'<div class="pgrid">'+row('Очки за всё время',f(d.sc))+row('Лучшее время',fmtT(d.best))+row('Звёзд собрано',f(d.ea))+row('Время в игре',ok?fmtDur(d.sec):'—')+'</div>'+bk;
+}
+function profHTML(B){return profCard(B,{nick:name,reg:pf.reg,date:pf.date,sc:pf.sc,best:bestT,ea:pf.ea,sec:pf.sec,ok:pf.ok},B('back','← Назад','lnk'))}
+async function openPlayer(n){
+  plN=n;plD=null;showMenu('pl');
+  try{
+    const r=await sb.rpc('get_profile',{p_nick:n});
+    if(r.error||!r.data||!r.data.length)throw 0;
+    const x=r.data[0];
+    plD={nick:x.nick,reg:+x.reg_no||0,date:x.reg_at?fmtD(x.reg_at):'',sc:+x.total_score||0,best:+x.best_time||0,ea:+x.stars_earned||0,sec:+x.play_secs||0,ok:true};
+  }catch(e){plD=false}
+  if(curP==='pl'&&plN===n)showMenu('pl');
 }
 function shopHTML(B){
   const a=st.m12,b=st.m14;
@@ -726,11 +740,12 @@ function drawComet(){
   ctx.restore();ctx.globalAlpha=1;
 }
 function showMenu(p){
-  MD.style.display='flex';
+  MD.style.display='flex';curP=p;
   const B=(a,t,c='')=>`<button class="mb ${c}" data-a="${a}">${t}</button>`,tp=p.startsWith('top:');
   let h='';
   if(p==='main')h=`<canvas id="mds" class="mds"></canvas><h1>Star Wars</h1>${authState==='ok'?`<div class="chips"><span class="chip">Звёзд: ${fmtN(tot)}</span><span class="chip">Время: ${fmtT(bestT)}</span>${mult()>1?`<span class="chip">×${mult()}</span>`:''}</div>`:''}${B('play','Играть')}${B('prof','Профиль')}${B('rec','Рекорды')}${B('store','Магазин')}${B('shop','Донат')}${authState==='ok'?B('out','Выйти ('+esc(name)+')','lnk'):''}<div class="vv">${VER}</div>`;
   else if(p==='prof')h=profHTML(B);
+  else if(p==='pl')h=plD?profCard(B,plD,B('tback','← Назад','lnk')):'<h2>Профиль</h2><div class="it" style="justify-content:center">'+(plD===false?'Не удалось загрузить профиль':'Загрузка…')+'</div>'+B('tback','← Назад','lnk');
   else if(p==='reg'||p==='login')h=authHTML(B,p);
   else if(p==='forgot')h='<h2>Восстановление</h2>'+`<label class="fld"><input id="em" type="email" placeholder="Почта" autocomplete="email"></label><div id="rerr"></div>`+B('sendreset','Отправить ссылку')+B('tologin','← Назад','lnk');
   else if(p==='newpw')h='<h2>Новый пароль</h2>'+`<label class="fld"><input id="pw" type="password" placeholder="Новый пароль" autocomplete="new-password"></label><div id="rerr"></div>`+B('savepw','Сохранить');
@@ -787,6 +802,8 @@ MD.onclick=e=>{
   else if(a==='tologin')showMenu('login');
   else if(a==='out'){pushStats().then(()=>sb.auth.signOut()).then(()=>{pendS=0;tot=0;bestT=0;pendSc=0;pendSec=0;pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};try{localStorage.removeItem('pp')}catch(x){}st.lvl=0;st.auto=false;st.spd=0;st.dim=false;st.blast=0;st.lown=[];st.lsel='green';st.town=[];st.tsel='tri';st.sown=[];st.ssel='star';st.dsown=[];st.dssel='imp';st.bgown=[];st.bgsel='space';saveSt();try{localStorage.removeItem('ps')}catch(x){}acct=null;UID=null;authState='guest';showMenu('main')})}
   else if(a==='rec')showMenu('rec');
+  else if(a==='pl')openPlayer(bt.dataset.n);
+  else if(a==='tback')showMenu('top:'+topKey);
   else if(a==='prof')showMenu(authState==='ok'?'prof':'login');
   else if(a.startsWith('top:'))showMenu(a);
   else if(a==='back')showMenu('main');
@@ -898,6 +915,7 @@ async function doReg(){
   }catch(e){er.textContent='Ошибка связи с сервером'}
 }
 async function loadTop(key){
+  topKey=key;
   const c=TOPS[key],L=MD.querySelector('#tl'),F=MD.querySelector('#tme');if(!L)return;
   const fail=m=>{if(MD.querySelector('#tl')===L)L.innerHTML='<div class="it">'+m+'</div>'};
   if(!sb)return fail('Нет связи с сервером');
@@ -915,7 +933,7 @@ async function loadTop(key){
     }
   }catch(e){return fail('Ошибка загрузки')}
   if(MD.querySelector('#tl')!==L)return;
-  const medal=['🥇','🥈','🥉'],row=(rk,n,v,me)=>`<div class="it${me?' me':''}"><span class="rk">${rk}</span><span class="nm">${esc(n)}</span><span class="vl">${v}</span></div>`;
+  const medal=['🥇','🥈','🥉'],row=(rk,n,v,me)=>`<div class="it${me?' me':''}" data-a="pl" data-n="${esc(n)}"><span class="rk">${rk}</span><span class="nm">${esc(n)}</span><span class="vl">${v}</span></div>`;
   L.innerHTML=rows.length?rows.map((x,i)=>row(medal[i]||i+1,x[0],fmt(x[1]),x[0]===name)).join(''):'<div class="it">Пока пусто</div>';
   if(authState==='ok'&&!rows.some(x=>x[0]===name))F.innerHTML=row('—',name,my>0?fmt(my):'—',true);
 }
