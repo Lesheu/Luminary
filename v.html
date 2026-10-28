@@ -875,7 +875,7 @@ async function doLogin(){
     const r=await sb.auth.signInWithPassword({email:em,password:pw});
     if(r.error){er.textContent=/confirm/i.test(r.error.message)?'Сначала подтвердите почту по письму':'Неверная почта или пароль';return}
     await loadProfile();
-    if(authState==='ok')start();else er.textContent='Профиль не найден';
+    if(authState==='ok'){if(entryLogin){entryLogin=false;showMenu('main')}else start()}else er.textContent='Профиль не найден';
   }catch(e){er.textContent='Ошибка связи с сервером'}
 }
 async function doForgot(){
@@ -915,7 +915,7 @@ async function doReg(){
     const r=await sb.auth.signUp({email:em,password:pw,options:{data:{nick}}});
     if(r.error){er.textContent=/database/i.test(r.error.message)?'Никнейм «'+nick+'» занят':/registered/i.test(r.error.message)?'Эта почта уже зарегистрирована':'Ошибка: '+r.error.message;return}
     if(r.data.user&&r.data.user.identities&&r.data.user.identities.length===0){er.textContent='Эта почта уже зарегистрирована';return}
-    if(r.data.session){await loadProfile();start();return}
+    if(r.data.session){await loadProfile();if(entryLogin){entryLogin=false;showMenu('main')}else start();return}
     showMenu('login');
     const e2=MD.querySelector('#rerr');e2.style.color='#8affb0';e2.textContent='Готово! Мы отправили письмо: подтвердите почту и войдите.';
   }catch(e){er.textContent='Ошибка связи с сервером'}
@@ -975,8 +975,15 @@ addEventListener('pagehide',pushAll);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pushAll()});
 
 $('bm').onclick=()=>{saveScore();showMenu('main')};
-showMenu('main');
-initAuth().then(()=>{if(recov)showMenu('newpw')});
+let entryLogin=true;
+showMenu('login');
+initAuth().then(()=>{
+  if(recov){showMenu('newpw');return}
+  if(curP!=='login')return;
+  if(authState==='ok'){entryLogin=false;showMenu('main')}
+  else if(authState==='guest')showMenu('login');
+  else{entryLogin=false;showMenu('main')}
+});
 requestAnimationFrame(frame);
 </script>
 </body>
