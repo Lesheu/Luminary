@@ -482,7 +482,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.3',MD=document.getElementById('menu');
+const VER='v1.4.4',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -528,16 +528,20 @@ function dsHTML(B){
   const cells=DS.map(c=>`<div class="cc${cur===c.id?' sel':''}"><img class="sw" alt="" src="${dsPrev(c.id)}"><b>${c.n}</b>${cur===c.id?'<div class="st">Выбрано</div>':own(c)?B('ed:'+c.id,'Выбрать'):tot>=c.p?B('bd:'+c.id,'⭐ '+fmtN(c.p)):`<button class="mb" disabled>⭐ ${fmtN(c.p)}</button>`}</div>`).join('');
   return `<div class="chips"><span class="chip">Баланс: ${fmtN(tot)}</span></div><div class="grid">${cells}</div><div id="rerr"></div>`;
 }
+let dsTouch=0;
 async function buyDS(id){
   const pr=(DS.find(c=>c.id===id)||{}).p;
   if(!pr||tot<pr||(st.dsown||[]).includes(id)||!sb||authState!=='ok')return;
   try{
     await doBuy('buy_ds',{c:id});
-    await loadProfile();st.dssel=id;saveSt();sb.rpc('set_ds',{c:id}).then(()=>{},()=>{});
+    await loadProfile();
+    if(!(st.dsown||[]).includes(id))(st.dsown=st.dsown||[]).push(id);
+    st.dssel=id;dsTouch=Date.now();saveSt();
+    try{await sb.rpc('set_ds',{c:id})}catch(_){}
   }catch(e){const x=MD.querySelector('#rerr');if(x)buyFail(e);return}
   showMenu('ds');
 }
-function equipDS(id){st.dssel=id;saveSt();if(sb&&authState==='ok')sb.rpc('set_ds',{c:id}).then(()=>{},()=>{});showMenu('ds')}
+function equipDS(id){st.dssel=id;dsTouch=Date.now();saveSt();if(sb&&authState==='ok')sb.rpc('set_ds',{c:id}).then(()=>{},()=>{});showMenu('ds')}
 const BG=[{id:'space',n:'Космос',p:0,free:1},{id:'neb',n:'Туманность',p:2000},{id:'polar',n:'Полярный',p:2000},{id:'red',n:'Алый',p:2000},{id:'emer',n:'Изумруд',p:2000}];
 const BGK={
   space:{g:['#05050f','#0f0a23','#190f2d','#0a0514'],s:'#cfe8ff',d:'#6a7a9a',neb:[]},
@@ -841,7 +845,7 @@ async function loadProfile(){
       if(q.data.upg_lvl!==undefined){st.lvl=+q.data.upg_lvl||0;saveSt()}
       if(q.data.skin_own!==undefined){st.sown=(q.data.skin_own||'').split(',').filter(Boolean);st.ssel=q.data.skin_sel||'star';saveSt()}
       if(q.data.bg_own!==undefined){st.bgown=(q.data.bg_own||'').split(',').filter(Boolean);st.bgsel=q.data.bg_sel||'space';saveSt()}
-      if(q.data.ds_own!==undefined){st.dsown=(q.data.ds_own||'').split(',').filter(Boolean);st.dssel=q.data.ds_sel||'imp';saveSt()}
+      if(q.data.ds_own!==undefined){st.dsown=(q.data.ds_own||'').split(',').filter(Boolean);if(Date.now()-dsTouch>15000)st.dssel=q.data.ds_sel||'imp';saveSt()}
       if(q.data.trail_own!==undefined){st.town=(q.data.trail_own||'').split(',').filter(Boolean);st.tsel=q.data.trail_sel||'tri';saveSt()}
       if(q.data.laser_own!==undefined){st.lown=(q.data.laser_own||'').split(',').filter(Boolean);st.lsel=q.data.laser_sel||'green';saveSt()}
       if(q.data.blast_lvl!==undefined){st.blast=+q.data.blast_lvl||0;saveSt()}
