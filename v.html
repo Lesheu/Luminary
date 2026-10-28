@@ -478,7 +478,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.0',MD=document.getElementById('menu');
+const VER='v1.4.1',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -680,7 +680,7 @@ function profHTML(B){
   const ok=pf.ok,f=v=>ok?fmtN(Math.floor(v)):'—',row=(l,v)=>`<div class="pst"><span>${l}</span><b>${v}</b></div>`;
   return '<h2>Профиль</h2><div class="pav"><svg viewBox="0 0 24 24" width="46" height="46"><polygon points="12,2 14.9,8.6 22,9.3 16.6,14 18.2,21 12,17.3 5.8,21 7.4,14 2,9.3 9.1,8.6" fill="#ffd700" stroke="#fff3b0" stroke-width=".6" stroke-linejoin="round"/></svg></div>'
    +`<div class="pn">${esc(name)}</div><div class="pid">ID ${pf.reg?'1000'+pf.reg:'—'}</div><div class="pdt">Дата регистрации: ${pf.date||'—'}</div>`
-   +'<div class="pgrid">'+row('Очки за всё время',f(pf.sc))+row('Лучшее время',fmtT(bestT))+row('Звёзд собрано (без учёта покупок)',f(pf.ea))+row('Время в игре',ok?fmtDur(pf.sec):'—')+'</div>'+B('back','← Назад','lnk');
+   +'<div class="pgrid">'+row('Очки за всё время',f(pf.sc))+row('Лучшее время',fmtT(bestT))+row('Звёзд собрано',f(pf.ea))+row('Время в игре',ok?fmtDur(pf.sec):'—')+'</div>'+B('back','← Назад','lnk');
 }
 function shopHTML(B){
   const a=st.m12,b=st.m14;
