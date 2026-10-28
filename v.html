@@ -283,7 +283,7 @@ function shoot(px,py){
   for(const s of [...stars])if(s.hit(px,py)){
     acc+=(s.sup?10:1)*mult();const w=Math.floor(acc+1e-9);score+=w;pendSc+=w;pf.sc+=w;acc-=w;saveScore();
     boom(s.x,s.y,s.sup?'#FFD700':'#FF4500',s.sup);
-    stars.splice(stars.indexOf(s),1);tot++;pendS++;pf.ea++;try{localStorage.setItem('ps',pendS)}catch(e){}
+    stars.splice(stars.indexOf(s),1);accS+=mult();const ns=Math.floor(accS+1e-9);accS-=ns;tot+=ns;pendS+=ns;pf.ea+=ns;try{localStorage.setItem('ps',pendS)}catch(e){}
   }
 }
 function wMax(){return Math.hypot(W,H)/2+20}
@@ -811,7 +811,7 @@ MD.onclick=e=>{
   else if(a==='back')showMenu('main');
 };
 const SUPABASE_URL='https://bxpxllvhtlolybnnwthm.supabase.co',SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4cHhsbHZodGxvbHlibm53dGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODM3MjMsImV4cCI6MjEwODY1OTcyM30.oFp08pTE6lpzmCLWRe69oxEmHpXGk6cdXDhvYvkTPEw';
-let recov=/type=recovery/.test(location.hash),acc=0,sb=null,UID=null,acct=null,authState='loading',pend=null,btSent=0;
+let recov=/type=recovery/.test(location.hash),acc=0,accS=0,sb=null,UID=null,acct=null,authState='loading',pend=null,btSent=0;
 try{if(window.supabase&&!SUPABASE_URL.includes('ВСТАВЬТЕ'))sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 if(sb)sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){recov=true;setTimeout(()=>showMenu('newpw'),0)}});
 function start(){saveScore();paused=false;$('bp').textContent='Пауза';newRound();MD.style.display='none'}
