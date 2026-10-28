@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Star Wars</title>
+<title>Luminary</title>
 <style>
 :root{--bg:#050510;--panel:#1a0a2a;--btn:#3a1a5a;--gold:#ffd700}
 @media (prefers-color-scheme: dark){:root{--bg:#050510}}
@@ -743,7 +743,7 @@ function showMenu(p){
   MD.style.display='flex';curP=p;
   const B=(a,t,c='')=>`<button class="mb ${c}" data-a="${a}">${t}</button>`,tp=p.startsWith('top:');
   let h='';
-  if(p==='main')h=`<canvas id="mds" class="mds"></canvas><h1>Star Wars</h1>${authState==='ok'?`<div class="chips"><span class="chip">Звёзд: ${fmtN(tot)}</span><span class="chip">Время: ${fmtT(bestT)}</span>${mult()>1?`<span class="chip">×${mult()}</span>`:''}</div>`:''}${B('play','Играть')}${B('prof','Профиль')}${B('rec','Рекорды')}${B('store','Магазин')}${B('shop','Донат')}${authState==='ok'?B('out','Выйти ('+esc(name)+')','lnk'):''}<div class="vv">${VER}</div>`;
+  if(p==='main')h=`<canvas id="mds" class="mds"></canvas><h1>Luminary</h1>${authState==='ok'?`<div class="chips"><span class="chip">Звёзд: ${fmtN(tot)}</span><span class="chip">Время: ${fmtT(bestT)}</span>${mult()>1?`<span class="chip">×${mult()}</span>`:''}</div>`:''}${B('play','Играть')}${B('prof','Профиль')}${B('rec','Рекорды')}${B('store','Магазин')}${B('shop','Донат')}${authState==='ok'?B('out','Выйти ('+esc(name)+')','lnk'):''}<div class="vv">${VER}</div>`;
   else if(p==='prof')h=profHTML(B);
   else if(p==='pl')h=plD?profCard(B,plD,B('tback','← Назад','lnk')):'<h2>Профиль</h2><div class="it" style="justify-content:center">'+(plD===false?'Не удалось загрузить профиль':'Загрузка…')+'</div>'+B('tback','← Назад','lnk');
   else if(p==='reg'||p==='login')h=authHTML(B,p);
