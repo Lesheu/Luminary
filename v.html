@@ -192,6 +192,7 @@ function mkSkin(sk,hue,sup){
   return c;
 }
 function sprs(sk){return SK[sk]||(SK[sk]={a:Array.from({length:12},(_,i)=>mkSkin(sk,i*30+15,false)),s:mkSkin(sk,0,true)})}
+let skK=1;
 class Star{
   constructor(y){this.reset(y)}
   reset(y){
@@ -213,7 +214,7 @@ class Star{
   hit(px,py){return !this.fd&&Math.hypot(this.x-px,this.y-py)<Math.max(this.size*(this.sup?2:1.5),22)*BK()}
   draw(){
     if(this.y<-this.size*2)return;
-    const a=this.ang*.01745,k=this.size*4/96*(1+.1*Math.sin(this.sup?t*8:this.ph*1.7))*(this.fd?1-this.fd*.6:1)*DPR,c=Math.cos(a)*k,sn=Math.sin(a)*k;
+    const a=this.ang*.01745,k=this.size*4/96*(1+.1*Math.sin(this.sup?t*8:this.ph*1.7))*(this.fd?1-this.fd*.6:1)*skK*DPR,c=Math.cos(a)*k,sn=Math.sin(a)*k;
     ctx.setTransform(c,sn,-sn,c,this.x*DPR,this.y*DPR);
     ctx.globalAlpha=this.fd?1-this.fd:1;
     ctx.drawImage(this.sup?curS.s:curS.a[(this.hue/30|0)%12],-48,-48);
@@ -239,7 +240,7 @@ function drawTrails(m){
   ctx.lineWidth=1;
 }
 function drawStars(){
-  const tm=trCur().id;curS=sprs(skCur().id);
+  const tm=trCur().id,sid=skCur().id;curS=sprs(sid);skK=diff==='Легкий'&&sid!=='star'?1.25:1;
   if(tm==='tri'){
   ctx.globalAlpha=.2;ctx.fillStyle='#bfa8ff';ctx.beginPath();
   for(const s of stars){if(s.fd||s.y<0)continue;const w=s.size*.45,l=s.size*1.2+s.sp*6;ctx.moveTo(s.x-w,s.y);ctx.lineTo(s.x+w,s.y);ctx.lineTo(s.x,s.y-l)}
