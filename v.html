@@ -101,6 +101,13 @@ button:active{background:#5a3a8a}
 .cc .sw{width:46px;height:46px;border-radius:50%;display:block}
 .cc .st{font-size:12px;color:#8affb0;padding:9px 0}
 .cc .mb{padding:8px 4px;font-size:13px;width:100%}
+.pav{width:88px;height:88px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#3a2370,#150a33);border:2px solid #ffd700;box-shadow:0 0 20px rgba(255,215,0,.4)}
+.pn{font-size:20px;font-weight:bold;color:#fff}
+.pid{color:#ffd700;font-size:15px;letter-spacing:1px}
+.pdt{font-size:13px;opacity:.75}
+.pgrid{display:flex;flex-direction:column;gap:6px;text-align:left}
+.pst{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(58,26,90,.32);font-size:13px}
+.pst b{color:#ffd700;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -119,8 +126,9 @@ const R=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length
 let W=0,H=0,diff='Средний',score=0,paused=false,bullet=false,name='Игрок',spawnT=0,t=0;
 let comet=null,stars=[],sparks=[],expl=[],lasers=[],sky=[],dust=[],hs={};
 let warp=[],wdt=1,barHid=false;
+let pendSc=0,pendSec=0,pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};
 let DPR=1,vig=null,tot=0,pendS=0,playT=0,bestT=0,tgtN=60,tgtT=0,cT=0,top3={},mine={},dk={e:0,f:0,eOn:0,fOn:0,eN:12,fN:40};
-try{hs=JSON.parse(localStorage.getItem('hs')||'{}');name=localStorage.getItem('nm')||name;pendS=+localStorage.getItem('ps')||0}catch(e){}
+try{hs=JSON.parse(localStorage.getItem('hs')||'{}');name=localStorage.getItem('nm')||name;pendS=+localStorage.getItem('ps')||0;{const pp=JSON.parse(localStorage.getItem('pp')||'{}');pendSc=+pp.sc||0;pendSec=+pp.sec||0}}catch(e){}
 function saveHS(){try{localStorage.setItem('hs',JSON.stringify(hs))}catch(e){}}
 function saveScore(){hs[diff]=hs[diff]||{};if(score>(hs[diff][name]||0)){hs[diff][name]=score;saveHS();pend={d:diff,s:score}}}
 function resize(){
@@ -264,14 +272,14 @@ function shoot(px,py){
   const d=ds();lasers.push({x1:d.x-d.r*.32,y1:d.y-d.r*.33,x2:px,y2:py,life:LF[st.spd||0],max:LF[st.spd||0],seed:R(0,6.28),dr:d.r*.27});
   for(let i=0;i<7;i++)sparks.push({x:px,y:py,vx:R(-3.5,3.5),vy:R(-3.5,3.5),life:R(10,22),max:22,r:R(.8,2),c:pick([`hsl(${lasH()},${lasCur().s}%,85%)`,'#ffffff',`hsl(${lasH()},${lasCur().s}%,70%)`])});
   if(comet&&Math.hypot(comet.x-px,comet.y-py)<Math.max(comet.r*1.4,40)*BK()){
-    acc+=100*mult();const cw=Math.floor(acc+1e-9);score+=cw;acc-=cw;saveScore();
+    acc+=100*mult();const cw=Math.floor(acc+1e-9);score+=cw;pendSc+=cw;pf.sc+=cw;acc-=cw;saveScore();
     boom(comet.x,comet.y,'#9fe8ff',true);boom(comet.x+comet.r*.3,comet.y-comet.r*.2,'#ffb066',true);
     comet=null;
   }
   for(const s of [...stars])if(s.hit(px,py)){
-    acc+=(s.sup?10:1)*mult();const w=Math.floor(acc+1e-9);score+=w;acc-=w;saveScore();
+    acc+=(s.sup?10:1)*mult();const w=Math.floor(acc+1e-9);score+=w;pendSc+=w;pf.sc+=w;acc-=w;saveScore();
     boom(s.x,s.y,s.sup?'#FFD700':'#FF4500',s.sup);
-    stars.splice(stars.indexOf(s),1);tot++;pendS++;try{localStorage.setItem('ps',pendS)}catch(e){}
+    stars.splice(stars.indexOf(s),1);tot++;pendS++;pf.ea++;try{localStorage.setItem('ps',pendS)}catch(e){}
   }
 }
 function wMax(){return Math.hypot(W,H)/2+20}
@@ -427,7 +435,7 @@ function frame(ts){
   const mo=MD.style.display==='flex';
   if(!paused&&!mo){
     const sm=diff==='Легкий'?.7:diff==='Сложный'?1.75:1.15,f=sm*dt;
-    playT+=dt/60;if(playT>bestT)bestT=playT;
+    playT+=dt/60;if(playT>bestT)bestT=playT;pendSec+=dt/60;pf.sec+=dt/60;
     tgtT-=dt;if(tgtT<=0){tgtN=Math.round(R(15,50));tgtT=R(200,420)}
     let alive=0;for(const s of stars)if(!s.fd)alive++;
     for(let k=0,o=alive-tgtN;k<8&&o>0;k++){const s=stars[Math.random()*stars.length|0];if(s&&!s.fd){s.fd=.001;o--}}
@@ -470,7 +478,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.3.19',MD=document.getElementById('menu');
+const VER='v1.4.0',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -667,6 +675,13 @@ async function buyAuto(){
   showMenu('upgr');
 }
 function buyMult(k){st['m'+k]=true;saveSt();if(sb&&authState==='ok')sb.rpc('buy_mult',{k}).then(()=>{},()=>{})}
+function fmtDur(v){v=Math.floor(v||0);const h=v/3600|0,m=v%3600/60|0,x=v%60;return h?`${h} ч ${m} мин`:m?`${m} мин ${x} с`:`${x} с`}
+function profHTML(B){
+  const ok=pf.ok,f=v=>ok?fmtN(Math.floor(v)):'—',row=(l,v)=>`<div class="pst"><span>${l}</span><b>${v}</b></div>`;
+  return '<h2>Профиль</h2><div class="pav"><svg viewBox="0 0 24 24" width="46" height="46"><polygon points="12,2 14.9,8.6 22,9.3 16.6,14 18.2,21 12,17.3 5.8,21 7.4,14 2,9.3 9.1,8.6" fill="#ffd700" stroke="#fff3b0" stroke-width=".6" stroke-linejoin="round"/></svg></div>'
+   +`<div class="pn">${esc(name)}</div><div class="pid">ID ${pf.reg?'1000'+pf.reg:'—'}</div><div class="pdt">Дата регистрации: ${pf.date||'—'}</div>`
+   +'<div class="pgrid">'+row('Очки за всё время',f(pf.sc))+row('Лучшее время',fmtT(bestT))+row('Звёзд собрано (без учёта покупок)',f(pf.ea))+row('Время в игре',ok?fmtDur(pf.sec):'—')+'</div>'+B('back','← Назад','lnk');
+}
 function shopHTML(B){
   const a=st.m12,b=st.m14;
   const c=(t,d,pr,ok,act)=>`<div class="card${ok?' ok':''}"><b>${t}</b><div>${d}</div>${ok?'<div class="pr">Куплено</div>':`<div class="pr">${pr}</div>`+B(act,'Купить')}</div>`;
@@ -714,7 +729,8 @@ function showMenu(p){
   MD.style.display='flex';
   const B=(a,t,c='')=>`<button class="mb ${c}" data-a="${a}">${t}</button>`,tp=p.startsWith('top:');
   let h='';
-  if(p==='main')h=`<canvas id="mds" class="mds"></canvas><h1>Star Wars</h1>${authState==='ok'?`<div class="chips"><span class="chip">Звёзд: ${fmtN(tot)}</span><span class="chip">Время: ${fmtT(bestT)}</span>${mult()>1?`<span class="chip">×${mult()}</span>`:''}</div>`:''}${B('play','Играть')}${B('rec','Рекорды')}${B('store','Магазин')}${B('shop','Донат')}${authState==='ok'?B('out','Выйти ('+esc(name)+')','lnk'):''}<div class="vv">${VER}</div>`;
+  if(p==='main')h=`<canvas id="mds" class="mds"></canvas><h1>Star Wars</h1>${authState==='ok'?`<div class="chips"><span class="chip">Звёзд: ${fmtN(tot)}</span><span class="chip">Время: ${fmtT(bestT)}</span>${mult()>1?`<span class="chip">×${mult()}</span>`:''}</div>`:''}${B('play','Играть')}${B('prof','Профиль')}${B('rec','Рекорды')}${B('store','Магазин')}${B('shop','Донат')}${authState==='ok'?B('out','Выйти ('+esc(name)+')','lnk'):''}<div class="vv">${VER}</div>`;
+  else if(p==='prof')h=profHTML(B);
   else if(p==='reg'||p==='login')h=authHTML(B,p);
   else if(p==='forgot')h='<h2>Восстановление</h2>'+`<label class="fld"><input id="em" type="email" placeholder="Почта" autocomplete="email"></label><div id="rerr"></div>`+B('sendreset','Отправить ссылку')+B('tologin','← Назад','lnk');
   else if(p==='newpw')h='<h2>Новый пароль</h2>'+`<label class="fld"><input id="pw" type="password" placeholder="Новый пароль" autocomplete="new-password"></label><div id="rerr"></div>`+B('savepw','Сохранить');
@@ -769,8 +785,9 @@ MD.onclick=e=>{
   else if(a==='savepw')doNewPw();
   else if(a==='toreg')showMenu('reg');
   else if(a==='tologin')showMenu('login');
-  else if(a==='out'){pushStats().then(()=>sb.auth.signOut()).then(()=>{pendS=0;tot=0;bestT=0;st.lvl=0;st.auto=false;st.spd=0;st.dim=false;st.blast=0;st.lown=[];st.lsel='green';st.town=[];st.tsel='tri';st.sown=[];st.ssel='star';st.dsown=[];st.dssel='imp';st.bgown=[];st.bgsel='space';saveSt();try{localStorage.removeItem('ps')}catch(x){}acct=null;UID=null;authState='guest';showMenu('main')})}
+  else if(a==='out'){pushStats().then(()=>sb.auth.signOut()).then(()=>{pendS=0;tot=0;bestT=0;pendSc=0;pendSec=0;pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};try{localStorage.removeItem('pp')}catch(x){}st.lvl=0;st.auto=false;st.spd=0;st.dim=false;st.blast=0;st.lown=[];st.lsel='green';st.town=[];st.tsel='tri';st.sown=[];st.ssel='star';st.dsown=[];st.dssel='imp';st.bgown=[];st.bgsel='space';saveSt();try{localStorage.removeItem('ps')}catch(x){}acct=null;UID=null;authState='guest';showMenu('main')})}
   else if(a==='rec')showMenu('rec');
+  else if(a==='prof')showMenu(authState==='ok'?'prof':'login');
   else if(a.startsWith('top:'))showMenu(a);
   else if(a==='back')showMenu('main');
 };
@@ -783,7 +800,9 @@ async function loadProfile(){
   const r=await sb.auth.getSession(),session=r.data&&r.data.session;
   if(!session){acct=null;UID=null;authState='guest';return}
   UID=session.user.id;
-  let q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel,skin_own,skin_sel,ds_own,ds_sel,bg_own,bg_sel').eq('id',UID).maybeSingle();
+  try{const d=new Date(session.user.created_at),p2=v=>String(v).padStart(2,'0');pf.date=p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+p2(d.getFullYear()%100)}catch(e){}
+  let q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel,skin_own,skin_sel,ds_own,ds_sel,bg_own,bg_sel,reg_no,stars_earned,total_score,play_secs').eq('id',UID).maybeSingle();
+  if(q.error)q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel,skin_own,skin_sel,ds_own,ds_sel,bg_own,bg_sel').eq('id',UID).maybeSingle();
   if(q.error)q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel,skin_own,skin_sel,ds_own,ds_sel').eq('id',UID).maybeSingle();
   if(q.error)q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel,skin_own,skin_sel').eq('id',UID).maybeSingle();
   if(q.error)q=await sb.from('profiles').select('nick,total_stars,best_time,m12,m14,upg_lvl,auto_comet,spd_lvl,dim,blast_lvl,laser_own,laser_sel,trail_own,trail_sel').eq('id',UID).maybeSingle();
@@ -797,6 +816,8 @@ async function loadProfile(){
   if(q.error)q=await sb.from('profiles').select('nick').eq('id',UID).maybeSingle();
   if(q.data){
     acct=q.data;name=q.data.nick;authState='ok';
+    pf.reg=+q.data.reg_no||0;pf.ok=q.data.stars_earned!==undefined;
+    if(pf.ok){pf.ea=(+q.data.stars_earned||0)+pendS;pf.sc=(+q.data.total_score||0)+pendSc;pf.sec=(+q.data.play_secs||0)+pendSec}
     if(q.data.total_stars!==undefined){tot=(+q.data.total_stars||0)+pendS;bestT=+q.data.best_time||0;btSent=bestT;
       if(q.data.upg_lvl!==undefined){st.lvl=+q.data.upg_lvl||0;saveSt()}
       if(q.data.skin_own!==undefined){st.sown=(q.data.skin_own||'').split(',').filter(Boolean);st.ssel=q.data.skin_sel||'star';saveSt()}
@@ -907,18 +928,24 @@ async function refreshTop(){
   }catch(e){}
 }
 setInterval(()=>{if(MD.style.display==='none'&&!paused)refreshTop()},12000);
+const saveP=()=>{try{localStorage.setItem('pp',JSON.stringify({sc:pendSc,sec:pendSec}))}catch(e){}};
 async function pushStats(){
-  if(!sb||authState!=='ok'||(!pendS&&Math.floor(bestT)<=btSent))return;
-  const n=pendS,tm=Math.floor(bestT);pendS=0;try{localStorage.setItem('ps',0)}catch(e){}
-  try{const r=await sb.rpc('submit_stats',{add_stars:n,t:tm});if(r.error)throw r.error;btSent=Math.max(btSent,tm)}
-  catch(e){lastPushErr=(e&&e.message)||String(e);pendS+=n;try{localStorage.setItem('ps',pendS)}catch(x){}}
+  const tm=Math.floor(bestT);
+  if(!sb||authState!=='ok'||(!pendS&&!pendSc&&pendSec<1&&tm<=btSent))return;
+  const n=pendS,sc=pendSc,sec=Math.floor(pendSec);pendS=0;pendSc=0;pendSec-=sec;saveP();try{localStorage.setItem('ps',0)}catch(e){}
+  try{
+    let r=await sb.rpc('submit_stats',{add_stars:n,t:tm,add_score:sc,add_secs:sec});
+    if(r.error&&(sc||sec)){r=await sb.rpc('submit_stats',{add_stars:n,t:tm});if(!r.error){pendSc+=sc;pendSec+=sec}}
+    if(r.error)throw r.error;btSent=Math.max(btSent,tm);
+  }catch(e){lastPushErr=(e&&e.message)||String(e);pendS+=n;pendSc+=sc;pendSec+=sec;try{localStorage.setItem('ps',pendS)}catch(x){}}
+  saveP();
 }
 function pushScore(){
   if(!sb||authState!=='ok'||!pend)return;
   const p=pend;pend=null;
   sb.rpc('submit_score',{d:p.d,s:p.s}).then(r=>{if(r.error&&!pend)pend=p});
 }
-const pushAll=()=>{pushScore();pushStats()};
+const pushAll=()=>{saveP();pushScore();pushStats()};
 setInterval(pushAll,8000);
 addEventListener('pagehide',pushAll);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pushAll()});
