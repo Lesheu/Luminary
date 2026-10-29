@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Luminary</title>
+<meta name="theme-color" content="#050510">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Luminary">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" id="mf">
+<script>try{const b=new URL('.',location.href),u=f=>new URL(f,b).href,n=document.title,st=location.href.split('#')[0].split('?')[0],m={id:st,name:n,short_name:n,start_url:st,scope:b.href,display:'standalone',background_color:'#050510',theme_color:'#050510',icons:[{src:u('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:u('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:u('icon-maskable-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
+document.getElementById('mf').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}))}catch(e){}</script>
 <style>
 :root{--bg:#050510;--panel:#1a0a2a;--btn:#3a1a5a;--gold:#ffd700}
 @media (prefers-color-scheme: dark){:root{--bg:#050510}}
@@ -113,6 +123,9 @@ button:active{background:#5a3a8a}
 
 #dgb{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:12;width:42px;height:42px;padding:0;display:none;align-items:center;justify-content:center;border-radius:12px;background:rgba(40,18,78,.75);border:1px solid rgba(160,110,230,.55);color:#ffd700}
 #dgb:hover{border-color:#ffd700}
+#ib{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:10px;z-index:12;width:42px;height:42px;padding:0;display:none;align-items:center;justify-content:center;border-radius:12px;background:rgba(40,18,78,.75);border:1px solid rgba(160,110,230,.55);color:#ffd700}
+#ib:hover{border-color:#ffd700}
+#ih{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 60px);max-width:330px;z-index:13;padding:12px 14px;border-radius:12px;background:rgba(26,10,42,.96);border:1px solid #ffd700;color:#e0ffff;font-size:13px;line-height:1.4;display:none}
 #dgb.has::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff5a5a;border:2px solid #1a0a2a;box-sizing:content-box}
 .wk{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .dc{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:12px;background:linear-gradient(160deg,rgba(90,44,150,.45),rgba(30,14,60,.55));border:1px solid rgba(160,110,230,.45);font-size:12px;color:#b9a3e6}
@@ -135,6 +148,7 @@ button:active{background:#5a3a8a}
 <button id="bp">Пауза</button>
 </div>
 <button id="dgb" title="Ежедневная награда" aria-label="Ежедневная награда"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8C10.5 5 7 5 7 7.2 7 8.5 9 8 12 8zM12 8c1.5-3 5-3 5-.8 0 1.3-2 .8-5 .8z"/></svg></button>
+<button id="ib" title="Установить игру" aria-label="Установить игру"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const cv=document.getElementById('c');let ctx=cv.getContext('2d');
@@ -230,7 +244,7 @@ function mkSkin(sk,hue,sup){
   return c;
 }
 function sprs(sk){return SK[sk]||(SK[sk]={a:Array.from({length:12},(_,i)=>mkSkin(sk,i*30+15,false)),s:mkSkin(sk,0,true)})}
-let skK=1,freezeT=0,flashA=0,wave=null;
+let iVis=false,instDone=false,dip=null,skK=1,freezeT=0,flashA=0,wave=null;
 class Star{
   constructor(y){this.reset(y)}
   reset(y){
@@ -526,6 +540,7 @@ function frame(ts){
     expl=expl.filter(e=>(e.life-=dt)>0);lasers=lasers.filter(l=>(l.life-=dt)>0);
   }
   if(mo!==barHid){barHid=mo;$('bar').style.display=mo?'none':'flex'}
+  {const iw=mo&&!instDone&&!standalone()&&(curP==='main'||curP==='login'||curP==='reg');if(iw!==iVis){iVis=iw;$('ib').style.display=iw?'flex':'none'}}
   {const dw=mo&&authState==='ok'&&dg.loaded&&curP!=='login';if(dw!==dgVis){dgVis=dw;$('dgb').style.display=dw?'flex':'none'}
    if(dw){const cn=dgCan();if(cn!==dgDot){dgDot=cn;$('dgb').classList.toggle('has',cn)}}}
   if(!mo){drawStars();drawComet();drawFx()}
@@ -550,7 +565,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.8',MD=document.getElementById('menu');
+const VER='v1.4.9',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -1095,6 +1110,21 @@ setInterval(()=>{
   if(curP!=='daily')return;const e=$('dtm');if(!e)return;
   const l=dgLeft();if(l<=0&&!dg.can){dg.can=true;showMenu('daily')}else e.textContent=fmtHMS(l);
 },1000);
+
+// ---------- Установка игры как приложения ----------
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
+addEventListener('appinstalled',()=>{dip=null;instDone=true;const h=$('ih');if(h)h.style.display='none'});
+function instHint(msg){
+  let h=$('ih');if(!h){h=document.createElement('div');h.id='ih';h.onclick=()=>{h.style.display='none'};document.body.appendChild(h)}
+  h.textContent=msg;h.style.display='block';clearTimeout(instHint.t);instHint.t=setTimeout(()=>{h.style.display='none'},9000);
+}
+$('ib').onclick=async()=>{
+  if(dip){const e=dip;dip=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')instDone=true}catch(x){}return}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':'Откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран».');
+};
+if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 
 let entryLogin=true;
 showMenu('login');
