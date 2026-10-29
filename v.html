@@ -1118,8 +1118,19 @@ function instHint(msg){
   let h=$('ih');if(!h){h=document.createElement('div');h.id='ih';h.onclick=()=>{h.style.display='none'};document.body.appendChild(h)}
   h.textContent=msg;h.style.display='block';clearTimeout(instHint.t);instHint.t=setTimeout(()=>{h.style.display='none'},9000);
 }
+function dlShortcut(){
+  const u=location.href.split('#')[0].split('?')[0];
+  const b=new Blob(['[InternetShortcut]\r\nURL='+u+'\r\nIconIndex=0\r\n'],{type:'application/octet-stream'});
+  const a=document.createElement('a'),url=URL.createObjectURL(b);a.href=url;a.download='Luminary.url';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
 $('ib').onclick=async()=>{
   if(dip){const e=dip;dip=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')instDone=true}catch(x){}return}
+  if(/windows/i.test(navigator.userAgent)&&!/android/i.test(navigator.userAgent)){
+    dlShortcut();
+    instHint('Ярлык Luminary.url скачан. Перетащите его на рабочий стол, и игра будет открываться двойным щелчком. Как приложение установить можно значком в адресной строке справа (если он есть).');
+    return;
+  }
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':/android/i.test(navigator.userAgent)?'Откройте меню браузера (три точки) и выберите «Установить приложение» или «Добавить на главный экран».':'Нажмите значок установки справа в адресной строке (монитор со стрелкой). Или: Chrome: меню (три точки) → «Сохранить и поделиться» → «Установить страницу как приложение». Edge: меню (три точки) → «Приложения» → «Установить этот сайт как приложение».');
 };
