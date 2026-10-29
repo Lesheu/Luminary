@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Luminary</title>
 <meta name="theme-color" content="#050510">
+<script>window.__dip=null;addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__dip=e});</script>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -242,7 +243,7 @@ function mkSkin(sk,hue,sup){
   return c;
 }
 function sprs(sk){return SK[sk]||(SK[sk]={a:Array.from({length:12},(_,i)=>mkSkin(sk,i*30+15,false)),s:mkSkin(sk,0,true)})}
-let iVis=false,instDone=false,dip=null,skK=1,freezeT=0,flashA=0,wave=null;
+let iVis=false,instDone=false,dip=window.__dip||null,skK=1,freezeT=0,flashA=0,wave=null;
 class Star{
   constructor(y){this.reset(y)}
   reset(y){
@@ -1120,7 +1121,7 @@ function instHint(msg){
 $('ib').onclick=async()=>{
   if(dip){const e=dip;dip=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')instDone=true}catch(x){}return}
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':/android/i.test(navigator.userAgent)?'Откройте меню браузера (три точки) и выберите «Установить приложение» или «Добавить на главный экран».':'Chrome: меню (три точки) → «Сохранить и поделиться» → «Установить страницу как приложение». Edge: меню (три точки) → «Приложения» → «Установить этот сайт как приложение».');
+  instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':/android/i.test(navigator.userAgent)?'Откройте меню браузера (три точки) и выберите «Установить приложение» или «Добавить на главный экран».':'Нажмите значок установки справа в адресной строке (монитор со стрелкой). Или: Chrome: меню (три точки) → «Сохранить и поделиться» → «Установить страницу как приложение». Edge: меню (три точки) → «Приложения» → «Установить этот сайт как приложение».');
 };
 if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 
