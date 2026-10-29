@@ -550,7 +550,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.7',MD=document.getElementById('menu');
+const VER='v1.4.8',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -933,10 +933,10 @@ async function initAuth(){
 }
 function authHTML(B,p){
   const bk=B('back','← Назад','lnk');
-  if(['loading','none','err'].includes(authState))return `<h2>${p==='reg'?'Регистрация':'Вход'}</h2><p style="text-align:center">${authState==='loading'?'Подключение…':'Нет связи с сервером'}</p>`+bk;
+  if(['loading','none','err'].includes(authState))return `<h2>${p==='reg'?'Регистрация':'Вход'}</h2><p style="text-align:center">${authState==='loading'?'Подключение…':'Нет связи с сервером'}</p>`+(authState==='loading'?'':bk);
   const F=(i,id,ph,ty,ac,ex='')=>`<label class="fld"><input id="${id}" type="${ty}" placeholder="${ph}" autocomplete="${ac}"${ex}></label>`,e='<div id="rerr"></div>';
-  if(p==='login')return '<h2>Вход</h2>'+F('','em','Почта','email','email')+F('','pw','Пароль','password','current-password')+e+B('login','Войти')+B('forgot','Забыли пароль?','lnk')+B('toreg','Создать аккаунт','lnk')+bk;
-  return '<h2>Регистрация</h2>'+F('','rn','Ник','text','username',' maxlength="16"')+F('','em','Почта','email','email')+F('','pw','Пароль','password','new-password')+e+B('reg','Зарегистрироваться')+B('tologin','Уже есть аккаунт','lnk')+bk;
+  if(p==='login')return '<h2>Вход</h2>'+F('','em','Почта','email','email')+F('','pw','Пароль','password','current-password')+e+B('login','Войти')+B('forgot','Забыли пароль?','lnk')+B('toreg','Создать аккаунт','lnk');
+  return '<h2>Регистрация</h2>'+F('','rn','Ник','text','username',' maxlength="16"')+F('','em','Почта','email','email')+F('','pw','Пароль','password','new-password')+e+B('reg','Зарегистрироваться')+B('tologin','Уже есть аккаунт','lnk');
 }
 async function doLogin(){
   const er=MD.querySelector('#rerr'),em=MD.querySelector('#em').value.trim(),pw=MD.querySelector('#pw').value;
