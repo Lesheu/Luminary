@@ -550,7 +550,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.6',MD=document.getElementById('menu');
+const VER='v1.4.7',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -695,7 +695,7 @@ const BK=()=>1+.02*Math.min(5,st.blast||0),BC=[1000,2000,3000,4000,5000];
 const fmtN=n=>Number(n||0).toLocaleString('ru');
 const fmtT=v=>{v=Math.floor(v||0);const h=v/3600|0,m=v%3600/60|0,x=String(v%60).padStart(2,'0');return h?`${h}:${String(m).padStart(2,'0')}:${x}`:`${m}:${x}`};
 const TOPS={easy:{t:'Лёгкая',k:'s',d:'Легкий'},mid:{t:'Средняя',k:'s',d:'Средний'},hard:{t:'Сложная',k:'s',d:'Сложный'},time:{t:'Лучшее время',k:'t'},stars:{t:'Сбито звёзд',k:'k'}};
-const SC=[500,1000],ST=['0.2','0.15','0.1'],UC=[1000,2000,5000,7500,10000],lv=L=>(1+.2*L).toFixed(1);
+const SC=[1000,2000],ST=['0.2','0.15','0.1'],UC=[1000,2000,5000,7500,10000],lv=L=>(1+.2*L).toFixed(1);
 function upgHTML(B){
   const L=Math.min(5,st.lvl||0),p=UC[L],A=st.auto,V=Math.min(2,st.spd||0),sp=SC[V];
   const D=st.dim,dc=`<div class="card${D?' ok':''}"><b>Затмение</b><div>Затемнение экрана на средней и сложной сложности слабее на 20%</div>${D?'<div class="pr">Куплено</div>':`<div class="pr">⭐ ${fmtN(200)}</div>`+(tot>=200?B('buydim','Купить'):`<button class="mb" disabled>Не хватает ⭐ ${fmtN(200-tot)}</button>`)}</div>`;
