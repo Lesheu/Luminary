@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Luminary">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" id="mf">
-<script>try{const b=new URL('.',location.href),u=f=>new URL(f,b).href,n=document.title,st=location.href.split('#')[0].split('?')[0],m={id:st,name:n,short_name:n,start_url:st,scope:b.href,display:'standalone',background_color:'#050510',theme_color:'#050510',icons:[{src:u('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:u('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:u('icon-maskable-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
+<script>try{const b=new URL('.',location.href),u=f=>new URL(f,b).href,n=document.title,st=location.href.split('#')[0].split('?')[0],m={id:st,name:n,short_name:n,start_url:st,scope:b.href,display:'fullscreen',display_override:['fullscreen','standalone','minimal-ui'],background_color:'#050510',theme_color:'#050510',icons:[{src:u('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:u('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:u('icon-maskable-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
 document.getElementById('mf').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}))}catch(e){}</script>
 <style>
 :root{--bg:#050510;--panel:#1a0a2a;--btn:#3a1a5a;--gold:#ffd700}
@@ -565,7 +565,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.9',MD=document.getElementById('menu');
+const VER='v1.4.10',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -1112,7 +1112,7 @@ setInterval(()=>{
 },1000);
 
 // ---------- Установка игры как приложения ----------
-const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const standalone=()=>matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches||navigator.standalone===true;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
 addEventListener('appinstalled',()=>{dip=null;instDone=true;const h=$('ih');if(h)h.style.display='none'});
 function instHint(msg){
