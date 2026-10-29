@@ -11,9 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Luminary">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" id="mf">
-<script>try{const b=new URL('.',location.href),u=f=>new URL(f,b).href,n=document.title,st=location.href.split('#')[0].split('?')[0],m={id:st,name:n,short_name:n,start_url:st,scope:b.href,display:'fullscreen',display_override:['fullscreen','standalone','minimal-ui'],background_color:'#050510',theme_color:'#050510',icons:[{src:u('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:u('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:u('icon-maskable-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
-document.getElementById('mf').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}))}catch(e){}</script>
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{--bg:#050510;--panel:#1a0a2a;--btn:#3a1a5a;--gold:#ffd700}
 @media (prefers-color-scheme: dark){:root{--bg:#050510}}
@@ -565,7 +563,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.10',MD=document.getElementById('menu');
+const VER='v1.4.11',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -1122,7 +1120,7 @@ function instHint(msg){
 $('ib').onclick=async()=>{
   if(dip){const e=dip;dip=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')instDone=true}catch(x){}return}
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':'Откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран».');
+  instHint(ios?'Нажмите «Поделиться» (квадрат со стрелкой) и выберите «На экран Домой».':/android/i.test(navigator.userAgent)?'Откройте меню браузера (три точки) и выберите «Установить приложение» или «Добавить на главный экран».':'Chrome: меню (три точки) → «Сохранить и поделиться» → «Установить страницу как приложение». Edge: меню (три точки) → «Приложения» → «Установить этот сайт как приложение».');
 };
 if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 
