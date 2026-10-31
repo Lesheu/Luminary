@@ -247,7 +247,7 @@ let iVis=false,instDone=false,dip=window.__dip||null,skK=1,freezeT=0,flashA=0,wa
 class Star{
   constructor(y){this.reset(y)}
   reset(y){
-    this.sup=Math.random()<.01;{const r=Math.random();this.kind=this.sup?'':r<.00025?'ice':r<.0005?'red':''}
+    this.sup=Math.random()<.01;{const r=Math.random();this.kind=this.sup?'':r<.0005?'ice':r<.001?'red':''}
     this.x=R(30,Math.max(60,W-30));this.y=y===undefined?R(-90,0):y;
     const easy=diff==='Легкий',pw=easy?.2:diff==='Средний'?.5:1;
     this.size=(this.sup?R(18,26):this.kind?R(15,21):R(7,16))*(easy?1.25:1);
@@ -523,7 +523,7 @@ function frame(ts){
     let alive=0;for(const s of stars)if(!s.fd)alive++;
     for(let k=0,o=alive-tgtN;k<8&&o>0;k++){const s=stars[Math.random()*stars.length|0];if(s&&!s.fd){s.fd=.001;o--}}
     spawnT+=dt;if(spawnT>=10){spawnT=0;const n=Math.min(tgtN-alive,50-stars.length);if(n>0)spawn(n)}
-    cT+=dt;if(cT>=60){cT=0;if(!comet&&Math.random()<.0001)makeComet()}
+    cT+=dt;if(cT>=60){cT=0;if(!comet&&Math.random()<.0002)makeComet()}
     updDark(dt/60);
     for(let i=stars.length-1;i>=0;i--){
       const s=stars[i],r=s.update(f);
