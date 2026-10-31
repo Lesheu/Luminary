@@ -139,7 +139,7 @@ button:active{background:#5a3a8a}
 .mb[data-a=dclaim]{font-weight:bold;color:#2a1248;border-color:#fff1a0;background:linear-gradient(180deg,#ffe36b,#ffb300)}
 #qb{position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);right:10px;z-index:12;width:42px;height:42px;padding:0;display:none;align-items:center;justify-content:center;border-radius:12px;background:rgba(40,18,78,.75);border:1px solid rgba(160,110,230,.55);color:#ffd700}
 #qb:hover{border-color:#ffd700}
-.qc{display:flex;flex-direction:column;gap:7px;padding:10px 12px;border-radius:12px;background:linear-gradient(160deg,rgba(90,44,150,.45),rgba(30,14,60,.55));border:1px solid rgba(160,110,230,.45);text-align:left;font-size:14px;color:#e0ffff}
+.qc{display:flex;flex-direction:column;gap:5px;padding:8px 12px;border-radius:12px;background:linear-gradient(160deg,rgba(90,44,150,.45),rgba(30,14,60,.55));border:1px solid rgba(160,110,230,.45);text-align:left;font-size:14px;color:#e0ffff}
 .qc.done{border-color:#5be38c}.qc.now{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,.3)}
 .qbar{height:8px;border-radius:4px;background:rgba(0,0,0,.35);overflow:hidden}
 .qbar i{display:block;height:100%;background:linear-gradient(90deg,#8a5cff,#ffd700)}
@@ -341,9 +341,9 @@ function shoot(px,py){
   for(let i=0;i<7;i++)sparks.push({x:px,y:py,vx:R(-3.5,3.5),vy:R(-3.5,3.5),life:R(10,22),max:22,r:R(.8,2),c:pick([`hsl(${lasH()},${lasCur().s}%,85%)`,'#ffffff',`hsl(${lasH()},${lasCur().s}%,70%)`])});
   let hits=0;
   if(comet&&Math.hypot(comet.x-px,comet.y-py)<Math.max(comet.r*1.4,40)*BK()){
-    acc+=100*mult();const cw=Math.floor(acc+1e-9);score+=cw;pendSc+=cw;pf.sc+=cw;acc-=cw;saveScore();
+    acc+=100*mult();const cw=Math.floor(acc+1e-9);score+=cw;pendSc+=cw;pf.sc+=cw;acc-=cw;qUp('score',cw);saveScore();
     boom(comet.x,comet.y,'#9fe8ff',true);boom(comet.x+comet.r*.3,comet.y-comet.r*.2,'#ffb066',true);
-    comet=null;hits++;
+    comet=null;hits++;qUp('comet',1);
   }
   for(const s of [...stars])if(s.hit(px,py)){
     hits++;reward(s);boom(s.x,s.y,s.kind?s.col():s.sup?'#FFD700':'#FF4500',s.sup||!!s.kind);
@@ -353,7 +353,7 @@ function shoot(px,py){
   if(hits){qS+=hits;qUp('streak',qS,1)}else qS=0;
 }
 function reward(s,ns0){
-  acc+=(s.sup?10:s.kind?5:1)*mult();const w=Math.floor(acc+1e-9);score+=w;pendSc+=w;pf.sc+=w;acc-=w;qUp('stars',1);if(s.sup)qUp('sup',1);qUp('round',score,1);if(!ns0)saveScore();
+  acc+=(s.sup?10:s.kind?5:1)*mult();const w=Math.floor(acc+1e-9);score+=w;pendSc+=w;pf.sc+=w;acc-=w;qUp('stars',1);if(s.sup)qUp('sup',1);qUp('round',score,1);qUp('score',w);if(!ns0)saveScore();
   accS+=mult();const ns=Math.floor(accS+1e-9);accS-=ns;tot+=ns;pendS+=ns;pf.ea+=ns;try{localStorage.setItem('ps',pendS)}catch(e){}
 }
 function blastAll(x,y){
@@ -581,7 +581,7 @@ $('bp').onclick=pause;
 addEventListener('keydown',e=>{if(MD.style.display==='flex')return;if(e.code==='Space'){e.preventDefault();pause()}});
 resize();spawn(20);
 new ResizeObserver(()=>{if(cv.clientWidth!==W||cv.clientHeight!==H)resize()}).observe(cv);
-const VER='v1.4.12',MD=document.getElementById('menu');
+const VER='v1.4.14',MD=document.getElementById('menu');
 let st={m12:false,m14:false,lvl:0,auto:false,spd:0,dim:false,blast:0,lown:[],lsel:'green',town:[],tsel:'tri',sown:[],ssel:'star',dsown:[],dssel:'imp',bgown:[],bgsel:'space'};
 try{Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'))}catch(e){}
 if(st.mult>=1.2)st.m12=true;
@@ -1131,13 +1131,15 @@ setInterval(()=>{
 
 // ---------- Ежедневные задания ----------
 const plMin=m=>{const a=m%100,b=m%10;return a>10&&a<15?'минут':b===1?'минуту':b>1&&b<5?'минуты':'минут'};
+const QD={'Легкий':'лёгком','Средний':'среднем','Сложный':'сложном'},QV=2;
 const QT={
-  stars:{tg:[50,100,150,200],rw:[40,80,120,160],txt:g=>`Сбить ${fmtN(g)} звёзд`,fmt:(p,g)=>fmtN(p)+' / '+fmtN(g)},
-  round:{tg:[40,60,90,120],rw:[60,90,130,180],txt:g=>`Набрать ${fmtN(g)} очков за одну игру`,fmt:(p,g)=>fmtN(p)+' / '+fmtN(g)},
-  sup:{tg:[1,2,3],rw:[80,150,220],txt:g=>g===1?'Сбить 1 супер-звезду':`Сбить ${g} супер-звезды`,fmt:(p,g)=>p+' / '+g},
-  time:{tg:[180,300,480,720],rw:[40,70,110,160],txt:g=>`Играть ${g/60} ${plMin(g/60)}`,fmt:(p,g)=>Math.floor(p/60)+' / '+g/60+' мин'},
-  streak:{tg:[8,12,15],rw:[70,110,150],txt:g=>`Сбить ${g} звёзд подряд без промаха`,fmt:(p,g)=>p+' / '+g}
+  stars:{txt:g=>`Сбить ${fmtN(g)} звёзд`,fmt:(p,g)=>fmtN(p)+' / '+fmtN(g)},
+  sup:{txt:g=>`Сбить ${fmtN(g)} супер-звёзд`,fmt:(p,g)=>fmtN(p)+' / '+fmtN(g)},
+  time:{txt:g=>`Наиграть ${g/60} ${plMin(g/60)}`,fmt:(p,g)=>Math.floor(p/60)+' / '+g/60+' мин'},
+  comet:{txt:g=>g===1?'Сбить 1 комету':`Сбить ${g} комет`,fmt:(p,g)=>p+' / '+g},
+  score:{txt:(g,q)=>`Набрать ${fmtN(g)} очков на ${QD[q.d]||'любом'} уровне`,fmt:(p,g)=>fmtN(p)+' / '+fmtN(g)}
 };
+const QFIX=[['stars',500,100],['stars',1000,250],['stars',2500,500],['stars',5000,1000],['sup',50,100],['sup',100,250],['sup',250,600],['time',180,100],['time',300,200],['time',600,400],['comet',1,100]];
 const qRng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 // время берём с сервера игры (заголовок Date), чтобы смена даты на устройстве не сбрасывала задания
 const qNow=()=>Date.now()+qOff;
@@ -1153,23 +1155,25 @@ function qDay(){
 }
 function qLeft(){const n=new Date(qNow()),m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1).getTime();return Math.max(0,Math.ceil((m-qNow())/1000))}
 function qGen(day){
-  const r=qRng(Math.imul(day,2654435761)>>>0||1),ks=Object.keys(QT);
-  for(let i=ks.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[ks[i],ks[j]]=[ks[j],ks[i]]}
-  return ks.slice(0,3).map(k=>{const d=QT[k],i=Math.floor(r()*d.tg.length);return{t:k,g:d.tg[i],r:d.rw[i],p:0,c:0}});
+  const r=qRng(Math.imul(day,2654435761)>>>0||1),L=QFIX.map(([t,g,rw])=>({t,g,r:rw,p:0,c:0}));
+  // одно случайное задание на день: очки на одной из трёх сложностей (500-5000)
+  const d=['Легкий','Средний','Сложный'][Math.floor(r()*3)],g=500+Math.floor(r()*46)*100;
+  L.push({t:'score',d,g,r:Math.round(g/5),p:0,c:0});
+  return L;
 }
-function qSaveNow(){if(Q&&qDirty){qDirty=0;try{localStorage.setItem('q_'+Q.u,JSON.stringify({day:Q.day,list:Q.list}))}catch(e){}}}
+function qSaveNow(){if(Q&&qDirty){qDirty=0;try{localStorage.setItem('q_'+Q.u,JSON.stringify({v:QV,day:Q.day,list:Q.list}))}catch(e){}}}
 function qEnsure(){
   if(!UID||authState!=='ok'){Q=null;return}
   const d=qDay();
   if(Q&&Q.u===UID&&Q.day===d)return;
   let sv=null;try{sv=JSON.parse(localStorage.getItem('q_'+UID))}catch(e){}
-  if(sv&&sv.day===d&&Array.isArray(sv.list))Q={u:UID,day:d,list:sv.list};
+  if(sv&&sv.v===QV&&sv.day===d&&Array.isArray(sv.list)&&sv.list.length)Q={u:UID,day:d,list:sv.list};
   else if(qReady){Q={u:UID,day:d,list:qGen(d)};qDirty=1;qSaveNow()}
   else Q=null;
 }
 function qUp(t,v,mx){
   if(!Q||Q.u!==UID)qEnsure();if(!Q)return;
-  for(const q of Q.list)if(q.t===t&&!q.c&&q.p<q.g){const n=mx?Math.max(q.p,v):q.p+v;if(n!==q.p){q.p=Math.min(q.g,n);qDirty=1}}
+  for(const q of Q.list)if(q.t===t&&!q.c&&q.p<q.g&&(!q.d||q.d===diff)){const n=mx?Math.max(q.p,v):q.p+v;if(n!==q.p){q.p=Math.min(q.g,n);qDirty=1}}
 }
 function qTick(sec){if(Q)for(const q of Q.list)if(q.t==='time'&&!q.c&&q.p<q.g){q.p=Math.min(q.g,q.p+sec);qDirty=1}}
 const qCan=()=>!!Q&&Q.list.some(q=>!q.c&&q.p>=q.g);
@@ -1180,7 +1184,7 @@ function questsHTML(B){
   const rows=Q.list.map((q,i)=>{
     const d=QT[q.t],ok=q.p>=q.g,pc=Math.min(100,Math.floor(q.p/q.g*100));
     const act=q.c?'<div class="qst">Получено</div>':ok?B('qc:'+i,'Забрать +'+fmtN(q.r)+' ★'):'<div class="qst">Награда: +'+fmtN(q.r)+' ★</div>';
-    return `<div class="qc${q.c?' done':ok?' now':''}"><b>${d.txt(q.g)}</b><div class="qbar"><i style="width:${pc}%"></i></div><div class="qv"><span>${d.fmt(q.p,q.g)}</span></div>${act}</div>`;
+    return `<div class="qc${q.c?' done':ok?' now':''}"><b>${d.txt(q.g,q)}</b><div class="qbar"><i style="width:${pc}%"></i></div><div class="qv"><span>${d.fmt(q.p,q.g)}</span></div>${act}</div>`;
   }).join('');
   return '<h2>Задания на день</h2>'+(msg?`<div class="dmsg">${msg}</div>`:'')+rows
     +`<div class="dtm-l">Новые задания через</div><div class="dtm" id="qtm">${fmtHMS(qLeft())}</div>`
