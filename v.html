@@ -168,7 +168,7 @@ const TC=['#FF00FF','#00FFFF','#FFD700','#FF4500','#9400D3','#32CD32'];
 const R=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
 let W=0,H=0,diff='Средний',score=0,paused=false,bullet=false,name='Игрок',spawnT=0,t=0;
 let comet=null,stars=[],sparks=[],expl=[],lasers=[],sky=[],dust=[],hs={};
-let Q=null,qDirty=0,qS=0,qReady=false,qSrv=false,qOff=0,qVis=false,qDot=false,qMsg='',qShown=0;
+let Q=null,qDirty=0,qS=0,qReady=false,qSrv=false,qOff=0,qVis=false,qDot=false,qMsg='',qShown=0,qBusy=0,qNoSrv=false;
 let warp=[],wdt=1,barHid=false;
 let curP='',plD=null,plN='',topKey='',pendSc=0,pendSec=0,pf={sc:0,sec:0,ea:0,reg:0,date:'',ok:false};
 let DPR=1,vig=null,tot=0,pendS=0,playT=0,bestT=0,tgtN=60,tgtT=0,cT=0,top3={},mine={},dk={e:0,f:0,eOn:0,fOn:0,eN:12,fN:40};
@@ -1161,21 +1161,48 @@ function qGen(day){
   L.push({t:'score',d,g,r:Math.round(g/5),p:0,c:0});
   return L;
 }
-function qSaveNow(){if(Q&&qDirty){qDirty=0;try{localStorage.setItem('q_'+Q.u,JSON.stringify({v:QV,day:Q.day,list:Q.list}))}catch(e){}}}
+function qSaveNow(){if(Q&&qDirty){qDirty=0;try{localStorage.setItem('q_'+Q.u,JSON.stringify({v:QV,day:Q.day,list:Q.list,pd:Q.pd}))}catch(e){}}}
 function qEnsure(){
   if(!UID||authState!=='ok'){Q=null;return}
   const d=qDay();
   if(Q&&Q.u===UID&&Q.day===d)return;
   let sv=null;try{sv=JSON.parse(localStorage.getItem('q_'+UID))}catch(e){}
-  if(sv&&sv.v===QV&&sv.day===d&&Array.isArray(sv.list)&&sv.list.length)Q={u:UID,day:d,list:sv.list};
-  else if(qReady){Q={u:UID,day:d,list:qGen(d)};qDirty=1;qSaveNow()}
+  if(sv&&sv.v===QV&&sv.day===d&&Array.isArray(sv.list)&&sv.list.length){
+    Q={u:UID,day:d,list:sv.list,pd:sv.pd||{},need:1};
+    // сохранение из версии без синхронизации: отправим на сервер весь накопленный прогресс
+    if(!sv.pd)sv.list.forEach((q,i)=>{if(q.p>0)Q.pd[i]=q.p});
+  }else if(qReady){Q={u:UID,day:d,list:qGen(d),pd:{},need:1};qDirty=1;qSaveNow()}
   else Q=null;
+  if(Q)qPush();
 }
 function qUp(t,v,mx){
   if(!Q||Q.u!==UID)qEnsure();if(!Q)return;
-  for(const q of Q.list)if(q.t===t&&!q.c&&q.p<q.g&&(!q.d||q.d===diff)){const n=mx?Math.max(q.p,v):q.p+v;if(n!==q.p){q.p=Math.min(q.g,n);qDirty=1}}
+  for(let i=0;i<Q.list.length;i++){const q=Q.list[i];
+    if(q.t===t&&!q.c&&q.p<q.g&&(!q.d||q.d===diff)){const n=Math.min(q.g,mx?Math.max(q.p,v):q.p+v);if(n>q.p){Q.pd[i]=(Q.pd[i]||0)+(n-q.p);q.p=n;qDirty=1}}}
 }
-function qTick(sec){if(Q)for(const q of Q.list)if(q.t==='time'&&!q.c&&q.p<q.g){q.p=Math.min(q.g,q.p+sec);qDirty=1}}
+function qTick(sec){
+  if(Q)for(let i=0;i<Q.list.length;i++){const q=Q.list[i];
+    if(q.t==='time'&&!q.c&&q.p<q.g){const n=Math.min(q.g,q.p+sec);Q.pd[i]=(Q.pd[i]||0)+(n-q.p);q.p=n;qDirty=1}}
+}
+// синхронизация с сервером: на сервер уходит только прирост прогресса (а не итог), поэтому игра на двух устройствах суммируется
+async function qPush(){
+  if(qBusy||qNoSrv||!sb||authState!=='ok'||!Q)return false;
+  const S=Q,sent={},cl=[];
+  for(const k in S.pd)if(S.pd[k]>0)sent[k]=Math.round(S.pd[k]*1000)/1000;
+  S.list.forEach((q,i)=>{if(q.c)cl.push(i)});
+  if(!Object.keys(sent).length&&!S.need)return false;
+  qBusy=1;
+  try{
+    const r=await sb.rpc('q_add',{p_day:S.day,p_delta:sent,p_claimed:cl});
+    if(r.error){if(r.error.code==='PGRST202'||/could not find|does not exist/i.test(r.error.message||''))qNoSrv=true;throw r.error}
+    const d=r.data;if(!d||Q!==S)return false;
+    if(d.stale)return false;
+    for(const k in sent)S.pd[k]=Math.max(0,(S.pd[k]||0)-sent[k]);
+    const pr=d.prog||{},cs=d.claimed||[];
+    S.list.forEach((q,i)=>{q.p=Math.min(q.g,(+pr[i]||0)+(S.pd[i]||0));if(cs.includes(i))q.c=1});
+    S.need=0;qDirty=1;qSaveNow();return true;
+  }catch(e){return false}finally{qBusy=0}
+}
 const qCan=()=>!!Q&&Q.list.some(q=>!q.c&&q.p>=q.g);
 function questsHTML(B){
   qEnsure();const msg=qMsg;qMsg='';
@@ -1191,22 +1218,46 @@ function questsHTML(B){
     +'<p style="text-align:center;opacity:.7">Прогресс засчитывается только во время игры. Задания обновляются каждый день в полночь.</p>'
     +B('back','← Назад','lnk');
 }
-function qClaim(i){
-  qEnsure();const q=Q&&Q.list[i];if(!q||q.c||q.p<q.g)return;
-  q.c=1;tot+=q.r;pendS+=q.r;pf.ea+=q.r;try{localStorage.setItem('ps',pendS)}catch(e){}
-  qDirty=1;qSaveNow();pushStats();qMsg='Получено: +'+fmtN(q.r)+' ★';
+async function qClaim(i){
+  qEnsure();const S=Q,q=S&&S.list[i];if(!q||q.c||q.p<q.g)return;
+  let ok=true,bad='';
+  if(!qNoSrv&&sb&&authState==='ok'){
+    try{
+      await qPush();
+      if(Q!==S)return;
+      const r=await sb.rpc('q_claim',{p_day:S.day,p_idx:i,p_goal:q.g});
+      if(r.error){if(r.error.code==='PGRST202'||/could not find|does not exist/i.test(r.error.message||''))qNoSrv=true;else throw r.error}
+      else if(!r.data||!r.data.ok){
+        ok=false;const w=r.data&&r.data.reason;
+        if(w==='claimed'){q.c=1;qDirty=1;bad='Награда уже получена на другом устройстве'}
+        else bad='Прогресс ещё синхронизируется, попробуйте через пару секунд';
+      }
+    }catch(e){ok=false;bad='Не удалось забрать награду, попробуйте позже'}
+  }
+  if(ok){
+    q.c=1;tot+=q.r;pendS+=q.r;pf.ea+=q.r;try{localStorage.setItem('ps',pendS)}catch(e){}
+    qDirty=1;qSaveNow();pushStats();qMsg='Получено: +'+fmtN(q.r)+' ★';
+  }else qMsg=bad;
+  qSaveNow();
   if(curP==='quests')showMenu('quests');
 }
-$('qb').onclick=()=>showMenu('quests');
+const qSig=()=>Q?JSON.stringify(Q.list.map(q=>[Math.floor(q.p),q.c])):'';
+function qRefresh(){
+  qEnsure();if(!Q)return;Q.need=1;const sg=qSig();
+  qPush().then(ok=>{if(ok&&curP==='quests'&&qSig()!==sg)showMenu('quests')});
+}
+$('qb').onclick=()=>{showMenu('quests');qRefresh()};
 qSync();
 setInterval(qSync,1800000);
+let qTk=0;
 setInterval(()=>{
   qEnsure();qSaveNow();
+  if(++qTk>=10){qTk=0;if(Q&&(curP==='quests'||Q.need||Object.values(Q.pd).some(x=>x>0)))qRefresh()}
   if(curP!=='quests')return;const e=$('qtm');if(!e)return;
   if(Q&&Q.day!==qShown)showMenu('quests');else e.textContent=fmtHMS(qLeft());
 },1000);
-addEventListener('pagehide',qSaveNow);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)qSaveNow();else qSync()});
+addEventListener('pagehide',()=>{qSaveNow();qPush()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){qSaveNow();qPush()}else{qSync();qRefresh()}});
 
 // ---------- Установка игры как приложения ----------
 const standalone=()=>matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches||navigator.standalone===true;
